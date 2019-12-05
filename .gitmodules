@@ -1,4 +1,4 @@
 [submodule "hw/gem5"]
 	path = hw/gem5
-	url = os.inf.tu-dresden.de:/home/mhille/gem5-dtu.git
-	branch = m3ds-msg-array
+	url = https://github.com/TUD-OS/gem5-SemperOS.git
+	branch = master
