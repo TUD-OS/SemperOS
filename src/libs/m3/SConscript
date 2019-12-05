@@ -1,0 +1,17 @@
+import os
+
+Import('env')
+
+sources = [
+    env.Glob('*.cc'), env.Glob('*/*.cc'),
+    env.Glob('arch/$ARCHTYPE/*.cc'),
+    env.Glob('arch/$ARCH/*.cc')
+]
+if env['ARCH'] != 'host':
+    sources += [env.Glob('arch/baremetal/*.cc')]
+
+lib = env.StaticLibrary(
+    target = 'libm3',
+    source = sources
+)
+env.Install(env['LIBDIR'], lib)

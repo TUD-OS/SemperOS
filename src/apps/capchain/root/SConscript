@@ -1,0 +1,2 @@
+Import('env')
+env.M3Program(env, 'capchain-root', env.Glob('*.cc') + env.Object(env.Glob('../common/*.cc')))

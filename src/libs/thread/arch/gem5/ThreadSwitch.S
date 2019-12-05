@@ -1,0 +1,56 @@
+/*
+ * Copyright (C) 2019, Matthias Hille <matthias.hille@tu-dresden.de>, 
+ * Nils Asmussen <nils@os.inf.tu-dresden.de>
+ * Economic rights: Technische Universitaet Dresden (Germany)
+ *
+ * This file is part of SemperOS.
+ *
+ * SemperOS is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ * SemperOS is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License version 2 for more details.
+ */
+
+#include <thread/arch/gem5/Thread.h>
+
+.global thread_save
+.global thread_resume
+
+# bool thread_save(m3::Thread::Regs *regs);
+.type thread_save, function
+thread_save:
+    # save registers
+    mov     %rbx,  0(%rdi)
+    mov     %rsp,  8(%rdi)
+    mov     %rbp, 16(%rdi)
+    mov     %r12, 24(%rdi)
+    mov     %r13, 32(%rdi)
+    mov     %r14, 40(%rdi)
+    mov     %r15, 48(%rdi)
+    pushfq                              # load eflags
+    popq    56(%rdi)                    # store
+
+    mov     $0, %rax                    # return 0
+    ret
+
+# bool thread_resume(m3::Thread::Regs *regs);
+.type thread_resume, function
+thread_resume:
+    # restore registers
+    mov     48(%rdi), %r15
+    mov     40(%rdi), %r14
+    mov     32(%rdi), %r13
+    mov     24(%rdi), %r12
+    mov     16(%rdi), %rbp
+    mov      8(%rdi), %rsp
+    mov      0(%rdi), %rbx
+    pushq   56(%rdi)
+    popfq                               # load eflags
+    mov     64(%rdi), %rdi              # load rdi (necessary for startup)
+
+    mov     $1, %rax                    # return 1
+    ret

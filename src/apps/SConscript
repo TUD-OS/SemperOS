@@ -1,0 +1,25 @@
+Import('env', 'hostenv')
+
+# apps that run everywhere
+dirs = [
+    'arithserv', 'hello', 'clisrv', 'kernel', 'rdwr', 'unittests', 'coreutils',
+    'm3fs', 'parchksum', 'filterchain', 'noop', 'float', 'srvtest', 'bench', 'pipe', 'execpipe',
+    'fstrace', 'fdtest', 'fdchild', 'pipeserv', 'capbench', 'capchain', 'captree', 'pipelocalclnt',
+    'pipelocalsrv', 'srvtrace', 'loadgen'
+]
+
+# architecture / machine specific apps
+if env['ARCH'] == 't2':
+    dirs += ['profiler', 'profiler_cm', 'idle', 'sendfile']
+elif env['ARCH'] == 't3':
+    dirs += ['idle']
+elif env['ARCH'] == 'host':
+    dirs += [
+        'asciiplay', 'intserver', 'keyb', 'plasma',
+        'queue', 'stream', 'timer', 'vga'
+    ]
+elif env['ARCH'] == 'gem5':
+    dirs += ['idle', 'pager', 'init', 'pgchild']
+
+for d in dirs:
+    env.SConscript(env.Glob(d + '/SConscript'), exports = ['env', 'hostenv'])

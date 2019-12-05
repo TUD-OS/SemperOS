@@ -1,0 +1,29 @@
+Import('env')
+
+myenv = env.Clone()
+
+myenv.Append(CPPPATH = '.')
+
+sources = [
+    myenv.Glob('*.cc'),
+    myenv.Glob('*/*.cc'),
+    myenv.Glob('arch/$ARCH/*.cc'),
+    myenv.Glob('arch/$ARCHTYPE/*.cc') if myenv['ARCHTYPE'] != myenv['ARCH'] else [],
+    myenv.Glob('arch/$ARCH/*/*.cc')
+]
+if env['ARCH'] != 'host':
+    sources += [env.Glob('arch/baremetal/*.cc')]
+
+# kernel selftests
+kerneltest = myenv.get('KTESTS', 'none')
+if kerneltest != 'none':
+    myenv.Append(CPPFLAGS = ' -DKERNEL_TESTS')
+    for ktest in kerneltest.split(','):
+        myenv.Append(CPPFLAGS = ' -DKTEST_' + ktest)
+
+myenv.M3Program(
+    myenv,
+    target = 'kernel',
+    source = sources,
+    libs = ['X11', 'rt', 'thread'] if myenv['ARCH'] == 'host' else ['thread']
+)

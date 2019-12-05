@@ -1,0 +1,32 @@
+diff --git a/src/tools/scalabilityBench.bash b/src/tools/scalabilityBench.bash
+index 7f9d760e..e94a4289 100755
+--- a/src/tools/scalabilityBench.bash
++++ b/src/tools/scalabilityBench.bash
+@@ -56,9 +56,9 @@ declare -i maxSpaceFS=2197815296
+ # There is one exception: Every number of kernels and services is run with 1 client
+ # to enable runtime normalization.
+
+-krnls=(1 2)
+-fs=(1 2)
+-clients=(1 2 4 8)
++krnls=(1 2 3 4 8 16)
++fs=(1 2 3 4 8 16)
++clients=(1 12 24 36 48 96 192)
+
+ # set benchmarking environment
+ export M3_TARGET=gem5
+@@ -225,6 +225,13 @@ for i in `seq 0 $((${#krnls[@]} - 1))`; do
+
+             # check for invalid configuration
+             if [[ $((numClients + numFS)) -gt $((numKrnls * maxAppsPerKernel)) ]]; then
++               echo "Skipping run with $numKrnls kernels $numFS services $numClients clients" | tee -a $statefile
++               continue
++           fi
++
++           # show only island scaling
++           clntperkrnl=$((numClients / numKrnls))
++           if [[ $numKrnls -ne $numFS ]] || ([[ $clntperkrnl -ne 12 ]] && [[ $numClients -ne 1 ]]); then
+                 echo "Skipping run with $numKrnls kernels $numFS services $numClients clients" | tee -a $statefile
+                 continue
+             fi
+

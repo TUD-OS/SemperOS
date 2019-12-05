@@ -1,0 +1,2 @@
+Import('env')
+env.M3Program(env, 'capforest-link', env.Glob('*.cc') + env.Object(env.Glob('../common/*.cc')))

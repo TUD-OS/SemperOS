@@ -1,0 +1,105 @@
+diff --git a/src/apps/fstrace/m3fs/main.cc b/src/apps/fstrace/m3fs/main.cc
+index 7a5bd9f4..82c09ba4 100644
+--- a/src/apps/fstrace/m3fs/main.cc
++++ b/src/apps/fstrace/m3fs/main.cc
+@@ -20,6 +20,7 @@
+ #include <m3/stream/Standard.h>
+ #include <base/stream/IStringStream.h>
+ #include <m3/vfs/VFS.h>
++#include <m3/vfs/RegularFile.h>
+ 
+ #include <cstring>
+ 
+@@ -29,6 +30,7 @@
+ using namespace m3;
+ 
+ int main(int argc, char **argv) {
++    RegularFile::setMemoryAccess(false);
+     Platform::init(argc, argv);
+ 
+     m3::String fssrv("m3fs");
+diff --git a/src/apps/fstrace/m3fs/platform_m3fs.cc b/src/apps/fstrace/m3fs/platform_m3fs.cc
+index 2737a9e8..fef46c2d 100644
+--- a/src/apps/fstrace/m3fs/platform_m3fs.cc
++++ b/src/apps/fstrace/m3fs/platform_m3fs.cc
+@@ -15,6 +15,7 @@
+  */
+ 
+ #include <m3/stream/Standard.h>
++#include <m3/vfs/RegularFile.h>
+ 
+ #include <stdarg.h>
+ 
+@@ -72,6 +73,7 @@ static const size_t MAX_TMP_FILES   = 16;
+ static const bool VERBOSE           = 0;
+ 
+ void Platform::cleanup(const char *prefix) {
++    m3::RegularFile::setMemoryAccess(true);
+     m3::Dir dir(prefix);
+     if(m3::Errors::occurred())
+         return;
+@@ -102,4 +104,5 @@ void Platform::cleanup(const char *prefix) {
+         m3::VFS::unlink(entries[x - 1]->c_str());
+         delete entries[x - 1];
+     }
++    m3::RegularFile::setMemoryAccess(false);
+ }
+diff --git a/src/apps/srvtrace/m3fs/main.cc b/src/apps/srvtrace/m3fs/main.cc
+index d549ee87..8c3f751b 100644
+--- a/src/apps/srvtrace/m3fs/main.cc
++++ b/src/apps/srvtrace/m3fs/main.cc
+@@ -21,6 +21,7 @@
+ #include <base/stream/IStringStream.h>
+ #include <m3/vfs/VFS.h>
+ #include <m3/pipe/PipeHandler.h>
++#include <m3/vfs/RegularFile.h>
+ 
+ #include <cstring>
+ 
+@@ -33,6 +34,7 @@ static LocalPipeServer<PipeHandler> *pipesrv;
+ LocalDirectPipe *globpipe;
+ 
+ int main(int argc, char **argv) {
++    RegularFile::setMemoryAccess(false);
+     Platform::init(argc, argv);
+ 
+     m3::String fssrv("m3fs");
+diff --git a/src/apps/srvtrace/m3fs/platform_m3fs.cc b/src/apps/srvtrace/m3fs/platform_m3fs.cc
+index 2737a9e8..fef46c2d 100644
+--- a/src/apps/srvtrace/m3fs/platform_m3fs.cc
++++ b/src/apps/srvtrace/m3fs/platform_m3fs.cc
+@@ -15,6 +15,7 @@
+  */
+ 
+ #include <m3/stream/Standard.h>
++#include <m3/vfs/RegularFile.h>
+ 
+ #include <stdarg.h>
+ 
+@@ -72,6 +73,7 @@ static const size_t MAX_TMP_FILES   = 16;
+ static const bool VERBOSE           = 0;
+ 
+ void Platform::cleanup(const char *prefix) {
++    m3::RegularFile::setMemoryAccess(true);
+     m3::Dir dir(prefix);
+     if(m3::Errors::occurred())
+         return;
+@@ -102,4 +104,5 @@ void Platform::cleanup(const char *prefix) {
+         m3::VFS::unlink(entries[x - 1]->c_str());
+         delete entries[x - 1];
+     }
++    m3::RegularFile::setMemoryAccess(false);
+ }
+diff --git a/src/libs/m3/vfs/Dir.cc b/src/libs/m3/vfs/Dir.cc
+index 5b1f7ac0..79b1f6c5 100644
+--- a/src/libs/m3/vfs/Dir.cc
++++ b/src/libs/m3/vfs/Dir.cc
+@@ -34,6 +34,8 @@ bool Dir::readdir(Entry &e) {
+ 
+     // move to next entry
+     size_t off = fse.next - (sizeof(fse) + fse.namelen);
++    if(!fse.next)
++        return false;
+     if(off != 0)
+         _f.seek(off, SEEK_CUR);
+     return true;
